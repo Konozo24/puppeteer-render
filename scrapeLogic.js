@@ -13,8 +13,6 @@ const scrapeLogic = async (res) => {
                 "--no-zygote",
                 "--disable-dev-shm-usage" // prevent memory crashes
             ],
-
-            executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath()
         });
 
         const page = await browser.newPage();
