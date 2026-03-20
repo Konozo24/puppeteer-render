@@ -9,10 +9,7 @@ const scrapeLogic = async (res) => {
             "--single-process",
             "--no-zygote"
         ],
-        executablePath:
-            process.env.NODE_ENV === "Production"
-                ? process.env.PUPPETEER_EXECUTABLE_PATH
-                : puppeteer.executablePath()
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath()
     });
     try {
         // Launch the browser and open a new blank page.
