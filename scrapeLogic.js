@@ -2,48 +2,43 @@ const puppeteer = require("puppeteer");
 require("dotenv").config();
 
 const scrapeLogic = async (res) => {
-    const browser = await puppeteer.launch({
-        args: [
-            "--disable-setuid-sandbox",
-            "--no-sandbox",
-            "--single-process",
-            "--no-zygote"
-        ],
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath()
-    });
+    // 1. Declare the browser variable up here so the 'finally' block can reach it
+    let browser; 
+
     try {
-        // Launch the browser and open a new blank page.
+        // 2. Move the launch INSIDE the try block
+        browser = await puppeteer.launch({
+            args: [
+                "--disable-setuid-sandbox",
+                "--no-sandbox",
+                "--single-process",
+                "--no-zygote",
+                "--disable-dev-shm-usage" // 3. CRITICAL for Docker/Render to prevent memory crashes
+            ],
+            // 4. Simplified path checking
+            executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath()
+        });
+
         const page = await browser.newPage();
-
-        // Navigate the page to a URL.
         await page.goto('https://developer.chrome.com/');
-
-        // Set screen size.
         await page.setViewport({ width: 1080, height: 1024 });
-
-        // Open the search menu using the keyboard.
         await page.keyboard.press('/');
-
-        // Type into search box using accessible input name.
         await page.locator('::-p-aria(Search)').fill('automate beyond recorder');
-
-        // Wait and click on first result.
         await page.locator('.devsite-result-item-link').click();
 
-        // Locate the full title with a unique string.
-        const textSelector = await page
-            .locator('::-p-text(Customize and automate)')
-            .waitHandle();
+        const textSelector = await page.locator('::-p-text(Customize and automate)').waitHandle();
         const fullTitle = await textSelector?.evaluate(el => el.textContent);
 
-        // Print the full title.
         const logStatement = `The title of this blog post is ${fullTitle}`;
         console.log(logStatement);
         res.send(logStatement);
+
     } catch (e) {
-        console.error(e);
-        res.send("Something went wrong when running Puppeteer");
+        console.error("Scraping Error:", e);
+        // Now, if it crashes, you will see this in the browser instead of a 502 Gateway error
+        res.status(500).send(`Something went wrong while scraping: ${e.message}`);
     } finally {
+        // Ensure browser closes even if it crashes
         if (browser) await browser.close();
     }
 }
