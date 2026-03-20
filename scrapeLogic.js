@@ -2,20 +2,18 @@ const puppeteer = require("puppeteer");
 require("dotenv").config();
 
 const scrapeLogic = async (res) => {
-    // 1. Declare the browser variable up here so the 'finally' block can reach it
-    let browser; 
 
+    let browser; 
     try {
-        // 2. Move the launch INSIDE the try block
         browser = await puppeteer.launch({
             args: [
                 "--disable-setuid-sandbox",
                 "--no-sandbox",
                 "--single-process",
                 "--no-zygote",
-                "--disable-dev-shm-usage" // 3. CRITICAL for Docker/Render to prevent memory crashes
+                "--disable-dev-shm-usage" // prevent memory crashes
             ],
-            // 4. Simplified path checking
+
             executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath()
         });
 
@@ -35,10 +33,8 @@ const scrapeLogic = async (res) => {
 
     } catch (e) {
         console.error("Scraping Error:", e);
-        // Now, if it crashes, you will see this in the browser instead of a 502 Gateway error
         res.status(500).send(`Something went wrong while scraping: ${e.message}`);
     } finally {
-        // Ensure browser closes even if it crashes
         if (browser) await browser.close();
     }
 }
