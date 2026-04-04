@@ -11,7 +11,10 @@ app.get("/scrape", (req, res) => {
 app.get("/", (req, res) => {
     res.send("render puppeteer server is running.");
 })
-
+// test
+app.get("/", (req, res) => {
+    res.send("render puppeteer server is running.");
+})
 app.listen(PORT, ()=>{
     console.log(`listen to Port ${PORT}`);
 })
